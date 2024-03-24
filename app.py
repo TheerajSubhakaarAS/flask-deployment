@@ -17,17 +17,10 @@ users = {
     'user2': 'password2'
 }
 
-# Function to validate captcha
-def validate_captcha(form, field):
-    captcha_input = field.data.lower()
-    captcha_solution = session.get('captcha_solution', '').lower()
-    if captcha_input != captcha_solution:
-        raise ValidationError('Invalid captcha')
-
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired(), Length(min=6)])
-    captcha = StringField('Captcha', validators=[InputRequired(), validate_captcha])
+    captcha = PasswordField('Captcha', validators=[InputRequired()])
     submit = SubmitField('Login')
 
 @app.route('/', methods=['GET', 'POST'])
@@ -36,12 +29,14 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
+        captcha_input = form.captcha.data
 
-        if username in users and users[username] == password:
+        # New logic: Allow login if captcha has exactly 5 characters
+        if username in users and users[username] == password and len(captcha_input) == 5:
             flash('Login successful!', 'success')
             return redirect('/dashboard')
         else:
-            flash('Invalid username or password', 'error')
+            flash('Invalid username, password, or captcha', 'error')
             return redirect('/')
     captcha_img = random_captcha_image()
     session['captcha_solution'] = captcha_img.split('.')[0]
@@ -49,7 +44,7 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template('cv.html',image_path='face_img/20211120_142611.jpg')
+    return render_template('cv.html', image_path='face_img/20211120_142611.jpg')
 
 # Helper function to get a random captcha image
 def random_captcha_image():
