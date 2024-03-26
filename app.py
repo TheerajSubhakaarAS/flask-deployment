@@ -11,10 +11,12 @@ app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 csrf = CSRFProtect(app)
 
+def hash_text(text):
+    return hashlib.sha256(text.encode('utf-8')).hexdigest()
 # Fake user database (replace this with a proper user authentication mechanism)
 users = {
-    'user1': 'password1',
-    'user2': 'password2'
+    hash_text('user1'): hash_text('password1'),
+    hash_text('user2'): hash_text('password2')
 }
 
 class LoginForm(FlaskForm):
@@ -27,8 +29,8 @@ class LoginForm(FlaskForm):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
+        username = hash_text(form.username.data)
+        password = hash_text(form.password.data)
         captcha_input = form.captcha.data
 
         # New logic: Allow login if captcha has exactly 5 characters
