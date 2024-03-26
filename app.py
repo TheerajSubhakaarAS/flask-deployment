@@ -5,6 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_wtf.csrf import CSRFProtect
+import hashlib
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key_here'
